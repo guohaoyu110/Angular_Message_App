@@ -19,6 +19,6 @@ export class PostCreateComponent {
       return;
     }
     this.postsService.addPost(form.value.title, form.value.content);
-    form.resetForm();
+    form.resetForm(); // 每次写完一组数字，然后就直接重置了
   }
 }
