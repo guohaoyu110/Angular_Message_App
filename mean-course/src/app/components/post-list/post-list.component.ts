@@ -16,20 +16,27 @@ export class PostListComponent implements OnInit, OnDestroy {
   //   { title: "Third Post", content: "This is the third post's content" }
   // ];
   posts: Post[] = [];
+  isLoading = false;
   private postsSub: Subscription;
 
   constructor(public postsService: PostsService) {}
 
   ngOnInit() {
+    this.isLoading = true;
     this.postsService.getPosts();
     this.postsSub = this.postsService.getPostUpdateListener()
       .subscribe((posts: Post[]) => { // related to the posts.service
         // angular中用subscirbe和observable实现订阅，从而实现异步
+        this.isLoading = false;
         this.posts = posts;
       });
     //subscribte takes three arguments, the first one is a function which gets executed
     // whenever new data is emitted, the second argument will be called whenever an error is emitted
 
+  }
+
+  onDelete(postId: string){
+    this.postsService.deletePost(postId);
   }
 
   ngOnDestroy() {

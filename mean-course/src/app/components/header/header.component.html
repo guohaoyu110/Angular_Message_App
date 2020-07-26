@@ -1,1 +1,10 @@
-<mat-toolbar color="primary">MyMessages</mat-toolbar>
+<mat-toolbar color="primary">
+  <span><a routerLink="/">MyMessages</a></span>
+  <span class="spacer"></span>
+  <ul>
+    <li>
+      <a mat-button routerLink="/create" routerLinkActive="mat-accent">New Post</a>
+      <!-- 如果点到new post了，就显示红色，如果没有，还是显示白色 -->
+    </li>
+  </ul>
+</mat-toolbar>
