@@ -1,79 +1,99 @@
-import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
-import {HttpClient} from '@angular/common/http';
-import { Post } from './post.model';
-import { map } from 'rxjs/operators';
-import { stringify } from '@angular/compiler/src/util';
-import { Router } from '@angular/router';
+import { Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { Subject } from "rxjs";
+import { map } from "rxjs/operators";
+import { Router } from "@angular/router";
 
-@Injectable({providedIn: 'root'})
+import { Post } from "./post.model";
+
+@Injectable({ providedIn: "root" })
 export class PostsService {
   private posts: Post[] = [];
   private postsUpdated = new Subject<Post[]>();
 
-// for that, we need the angular router, right now we got our posts area with the post create in the post list component
+  constructor(private http: HttpClient, private router: Router) {}
 
-
-  constructor (private http:HttpClient, private router: Router) {  }
-
-  getPosts() { //this post is sent from the server side to the client side
-    // return [...this.posts];
-    this.http.get<{message: string; posts: any}>
-    ("http://localhost:3000/api/posts")
-    //pipe is a method that accepts multiple ooperators
-      .pipe(map(postData => {
-        return postData.posts.map(post => {
-          return {
-            title: post.title,
-            content: post.content,
-            id: post._id
-          }
-        });
-      }))
+  getPosts() {
+    this.http
+      .get<{ message: string; posts: any }>("http://localhost:3000/api/posts")
+      .pipe(
+        map(postData => {
+          return postData.posts.map(post => {
+            return {
+              title: post.title,
+              content: post.content,
+              id: post._id,
+              imagePath: post.imagePath
+            };
+          });
+        })
+      )
       .subscribe(transformedPosts => {
         this.posts = transformedPosts;
         this.postsUpdated.next([...this.posts]);
       });
   }
 
-  // we play something before subscribe but still chained to that obervable chain and that something is the pip method
-  // pipe simply allows us to add in such an operator and we can actually pipe multiple operators
-
-
   getPostUpdateListener() {
     return this.postsUpdated.asObservable();
   }
 
-  getPost(id: string){
-    // return {...this.posts.find(p => p.id == id)};
-    return this.http.get<{_id: string; title: string; content: string }>
-      ("http://localhost:3000/api/posts/" + id);
+  getPost(id: string) {
+    return this.http.get<{ _id: string, title: string, content: string, imagePath: string }>(
+      "http://localhost:3000/api/posts/" + id
+    );
   }
 
-  addPost(title: string, content: string) {
-    const post: Post = {id: null, title: title, content: content};
+  addPost(title: string, content: string, image: File) {
+    const postData = new FormData();
+    postData.append("title", title);
+    postData.append("content", content);
+    postData.append("image", image, title);
     this.http
-      .post<{message: string, postId: string}>("http://localhost:3000/api/posts",post)
+      .post<{ message: string; post: Post }>(
+        "http://localhost:3000/api/posts",
+        postData
+      )
       .subscribe(responseData => {
-        //console.log(responseData.message);
-        const id = responseData.postId;
-        post.id = id;
+        const post: Post = {
+          id: responseData.post.id,
+          title: title,
+          content: content,
+          imagePath: responseData.post.imagePath
+        };
         this.posts.push(post);
         this.postsUpdated.next([...this.posts]);
-        // this will execute asynchronously once we got a successful response because this first argument is only called for a successful response
         this.router.navigate(["/"]);
-
       });
-
   }
 
-  updatePost(id: string, title:string, content: string){
-    const post:Post = {id: id, title: title, content: content};
+  updatePost(id: string, title: string, content: string, image: File | string) {
+    let postData: Post | FormData;
+    if (typeof image === "object") {
+      postData = new FormData();
+      postData.append("id", id);
+      postData.append("title", title);
+      postData.append("content", content);
+      postData.append("image", image, title);
+    } else {
+      postData = {
+        id: id,
+        title: title,
+        content: content,
+        imagePath: image
+      };
+    }
     this.http
-      .put("http://localhost:3000/api/posts/" + id, post)
+      .put("http://localhost:3000/api/posts/" + id, postData)
       .subscribe(response => {
         const updatedPosts = [...this.posts];
-        const oldPostIndex = updatedPosts.findIndex(p => p.id == post.id);
+        const oldPostIndex = updatedPosts.findIndex(p => p.id === id);
+        const post: Post = {
+          id: id,
+          title: title,
+          content: content,
+          imagePath: ""
+        };
         updatedPosts[oldPostIndex] = post;
         this.posts = updatedPosts;
         this.postsUpdated.next([...this.posts]);
@@ -81,16 +101,13 @@ export class PostsService {
       });
   }
 
-  deletePost(postId: string){
-    this.http.delete("http://localhost:3000/api/posts/" + postId)
+  deletePost(postId: string) {
+    this.http
+      .delete("http://localhost:3000/api/posts/" + postId)
       .subscribe(() => {
-        console.log('Deleted!');
-        const updatePosts = this.posts.filter(post => post.id !== postId);
-        this.posts = updatePosts;
+        const updatedPosts = this.posts.filter(post => post.id !== postId);
+        this.posts = updatedPosts;
         this.postsUpdated.next([...this.posts]);
-        // filter allows us to only return a subset of that posts array and we pass an argument, a function to the filter
-        // this function will be executed for every post in the array and if it returns true, then this element will be kept,
-        // if it returns false, then this element will not be part of the new filtered post array
       });
   }
 }
