@@ -22,7 +22,7 @@ export class SignupComponent {
   }
 
 
-  ngOnInit(): void {
-  }
+  // ngOnInit(): void {
+  // }
 
 }
