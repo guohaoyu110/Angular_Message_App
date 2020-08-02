@@ -37,16 +37,21 @@ router.post("", checkAuth,
     const post = new Post({
       title: req.body.title,
       content: req.body.content,
-      imagePath: url + "/images/" + req.file.filename
+      imagePath: url + "/images/" + req.file.filename,
+      creator: req.userData.userId
     });
+    // console.log(req.userData);
+
+    // return res.status(200).json({});
     post.save().then(createdPost => {
       res.status(201).json({
         message: "Post added successfully",
         post: {
-          id: createdPost._id,
-          title: createdPost.title,
-          content: createdPost.content,
-          imagePath: createdPost.imagePath
+          ...createdPost,
+          id: createdPost._id
+          // title: createdPost.title,
+          // content: createdPost.content,
+          // imagePath: createdPost.imagePath
         }
       });
     });
@@ -68,11 +73,20 @@ router.put(
       _id: req.body.id,
       title: req.body.title,
       content: req.body.content,
-      imagePath: imagePath
+      imagePath: imagePath,
+      creator: req.userData.userId
     });
     console.log(post);
-    Post.updateOne({ _id: req.params.id }, post).then(result => {
-      res.status(200).json({ message: "Update successful!" });
+    Post.updateOne({ _id: req.params.id, creator: req.userData.userId }, post).then(result => {
+      //userId 这个是为了确保每次修改之后，比如我提交的new post，其他用户无法修改我的内容
+      if (result.nModified>0){
+        res.status(200).json({message: "Update successful!"});
+      }
+      else {
+        res.status(401).json({ message: "Not authorized!"});
+      }
+      console.log(result);
+      // res.status(200).json({ message: "Update successful!" });
     });
   }
 );
@@ -116,9 +130,14 @@ router.get("/:id", (req, res, next) => {
 });
 
 router.delete("/:id", checkAuth, (req, res, next) => {
-  Post.deleteOne({ _id: req.params.id }).then(result => {
+  Post.deleteOne({ _id: req.params.id, creator: req.userData.userId }).then(result => {
     console.log(result);
-    res.status(200).json({ message: "Post deleted!" });
+    if (result.n > 0) {
+      res.status(200).json({message: "Deletion successful"});
+    }
+    else {
+      res.status(401).json({ message: "Not authorized!"});
+    }
   });
 });
 
