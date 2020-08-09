@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 import {PageEvent} from "@angular/material/paginator";
 import { Post } from "../post.model";
 import { PostsService } from "../posts.service";
-import { AuthService } from '../auth.service';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: "app-post-list",
@@ -67,6 +67,8 @@ export class PostListComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.postsService.deletePost(postId).subscribe(() =>{
       this.postsService.getPosts(this.postsPerPage, this.currentPage);
+    }, () => {
+      this.isLoading = false;
     })
   }
 

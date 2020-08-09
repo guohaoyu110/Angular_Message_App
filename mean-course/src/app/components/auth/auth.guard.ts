@@ -8,9 +8,7 @@ import { AuthService } from "./auth.service";
 export class AuthGuard implements CanActivate {
   // add some interfaces your classes can implement which forces the classes to add certain methods
   // which the angular router
-  constructor(private authService: AuthService, private router: Router){
-
-  }
+  constructor(private authService: AuthService, private router: Router){ }
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot

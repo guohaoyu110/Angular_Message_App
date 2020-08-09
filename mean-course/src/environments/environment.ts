@@ -5,6 +5,7 @@
 export const environment = {
   production: false
 };
+// this is global variable and use it in
 
 /*
  * For easier debugging in development mode, you can import the following file
