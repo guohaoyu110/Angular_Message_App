@@ -3,7 +3,6 @@
 // here with the sign method in the user route
 
 const jwt = require("jsonwebtoken");
-const { decode } = require("punycode");
 
 module.exports = (req, res, next) => {
   // this is a typical middleware in Node.
@@ -13,8 +12,8 @@ module.exports = (req, res, next) => {
     req.userData = {email: decodedToken.email, userId: decodedToken.userId};
     next();
   }catch(error) {
-    res.status(401).json({message: "Auth failed!"});
+    res.status(401).json({message: "You are not authenticated!"});
   }
 
 
-}
+};

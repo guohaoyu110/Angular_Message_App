@@ -9,7 +9,9 @@ const userRoutes = require("./routes/user");
 const app = express();
 
 //node-angular represents the database name
-mongoose.connect("mongodb+srv://haoyuguo:haoyuguo@cluster0.wxy6p.mongodb.net/node-angular?retryWrites=true&w=majority", {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect("mongodb+srv://haoyuguo:haoyuguo@cluster0.wxy6p.mongodb.net/node-angular?retryWrites=true&w=majority",
+ {useNewUrlParser: true, useUnifiedTopology: true}
+ )
   .then(() => {
     console.log('Connected to database!');
   })
@@ -34,8 +36,6 @@ app.use((req, res, next) => {
   );
   next();
 });
-
-
 
 
 app.use("/api/posts", postsRoutes);
